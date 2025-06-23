@@ -1,0 +1,111 @@
+_schema-version: 3.3.0
+ID: optenstatus
+description: A simple CAP project.
+version: 1.0.0
+modules:
+  - name: optenstatus-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: optenstatus-auth
+      - name: optenstatus-postgres
+      - name: optenstatus-connectivity
+      - name: optenstatus-destination
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+      instances: 1
+    build-parameters:
+      builder: npm-ci
+  - name: optenstatus-postgres-deployer
+    type: nodejs
+    path: gen/pg
+    requires:
+      - name: optenstatus-postgres
+    parameters:
+      buildpack: nodejs_buildpack
+      no-route: true
+      no-start: true
+      tasks:
+        - command: npm start
+          name: deploy-to-postgresql
+  - name: optenstatus-app-deployer
+    type: com.sap.application.content
+    path: gen
+    requires:
+      - name: optenstatus-html5-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: app/
+      requires:
+        - artifacts:
+            - bpstatusfiori.zip
+          name: bpstatusfiori
+          target-path: app/
+  - name: bpstatusfiori
+    type: html5
+    path: app/bpstatus_fiori
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+resources:
+  - name: optenstatus-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        tenant-mode: dedicated
+        xsappname: optenstatus-${org}-${space}
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+  - name: optenstatus-postgres
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: postgresql-db
+      service-plan: development
+  - name: optenstatus-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+  - name: optenstatus-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: false
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+      service: destination
+      service-plan: lite
+  - name: optenstatus-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
