@@ -1,6 +1,21 @@
 {
-  "scopes": [],
-  "attributes": [],
-  "role-templates": [],
-  "authorities-inheritance": false
+ "xsappname": "optenstatus",
+ "tenant-mode": "dedicated",
+ "scopes": [
+  {
+   "name": "$XSAPPNAME.BPStatus_user",
+   "description": "Role for opten status application"
+  }
+ ],
+ "attributes": [],
+ "role-templates": [
+  {
+   "name": "BPStatus_user",
+   "description": "Role for opten status application",
+   "scope-references": [
+    "$XSAPPNAME.BPStatus_user"
+   ],
+   "attribute-references": []
+  }
+ ]
 }

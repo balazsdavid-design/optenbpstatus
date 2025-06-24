@@ -50,10 +50,21 @@
           }
         }
       },
-      "auth": "mocked", 
-      "connectivity": true,
+      "db": {
+        "kind": "postgres",
+        "credentials": {
+                "schema": "optenstatus"
+              }
+           
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      },
       "destinations": true,
-      "html5-runtime": true
+      "html5-runtime": true,
+      "workzone": true
+      
+      
     }
   },
   "sapux": [

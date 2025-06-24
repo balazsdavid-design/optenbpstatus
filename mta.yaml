@@ -2,36 +2,35 @@ _schema-version: 3.3.0
 ID: optenstatus
 description: A simple CAP project.
 version: 1.0.0
+parameters:
+  enable-parallel-deployments: true
+  deploy_mode: html5-repo
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
 modules:
   - name: optenstatus-srv
     type: nodejs
     path: gen/srv
-    requires:
-      - name: optenstatus-auth
-      - name: optenstatus-postgres
-      - name: optenstatus-connectivity
-      - name: optenstatus-destination
-    provides:
-      - name: srv-api
-        properties:
-          srv-url: ${default-url}
     parameters:
-      buildpack: nodejs_buildpack
-      instances: 1
+      memory: 256M
+      disk-quota: 1024M
     build-parameters:
       builder: npm-ci
-  - name: optenstatus-postgres-deployer
-    type: nodejs
-    path: gen/pg
+    provides:
+      - name: optenstatus-srv-api
+        properties:
+          srv-url: ${default-url}
     requires:
-      - name: optenstatus-postgres
-    parameters:
-      buildpack: nodejs_buildpack
-      no-route: true
-      no-start: true
-      tasks:
-        - command: npm start
-          name: deploy-to-postgresql
+      - name: optenstatus-auth
+      - name: optenstatus-destination
+      - name: postgre_msg
+      #- name: optenstatus-connectivity
+      
+
   - name: optenstatus-app-deployer
     type: com.sap.application.content
     path: gen
@@ -53,12 +52,66 @@ modules:
       build-result: dist
       builder: custom
       commands:
-        - npm install
-        - npm run build:cf
         - npm ci
         - npm run build
       supported-platforms:
         []
+  - name: optenstatus-postgres-deployer
+    type: nodejs
+    path: gen/pg
+    properties:
+      CDS_CONFIG: |
+        {
+        "requires": {
+          "db": {
+            "credentials": {
+              "schema": "optenstatus"
+            }
+          }
+        }
+        }
+    requires:
+      - name: postgre_msg
+    parameters:
+      buildpack: nodejs_buildpack
+      no-route: true
+      no-start: true
+      tasks:
+        - command: npm start
+          name: deploy-to-postgresql
+
+  - name: optenstatus-destinations
+    type: com.sap.application.content
+    requires:
+      - name: optenstatus-auth
+        parameters:
+          service-key:
+            name: optenstatus-auth-key
+      - name: optenstatus-html5-repo-host
+        parameters:
+          service-key:
+            name: optenstatus-html5-repo-host-key
+      - name: optenstatus-srv-api
+      - name: optenstatus-destination
+        parameters:
+          content-target: true
+    build-parameters:
+      no-source: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: optenstatus-html5-repository
+              ServiceInstanceName: optenstatus-html5-repo-host
+              ServiceKeyName: optenstatus-html5-repo-host-key
+              sap.cloud.service: optenstatus.service
+            - Name: optenstatus-auth
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: optenstatus-auth
+              ServiceKeyName: optenstatus-auth-key
+              sap.cloud.service: optenstatus.service
+
 resources:
   - name: optenstatus-auth
     type: org.cloudfoundry.managed-service
@@ -69,43 +122,57 @@ resources:
       path: ./xs-security.json
       service: xsuaa
       service-plan: application
-  - name: optenstatus-postgres
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: postgresql-db
-      service-plan: development
-  - name: optenstatus-connectivity
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: connectivity
-      service-plan: lite
+
+ # - name: optenstatus-connectivity
+  #  type: org.cloudfoundry.managed-service
+   # parameters:
+    #  service: connectivity
+     # service-plan: lite
+
   - name: optenstatus-destination
     type: org.cloudfoundry.managed-service
     parameters:
-      config:
-        HTML5Runtime_enabled: false
-        init_data:
-          instance:
-            destinations:
-              - Authentication: NoAuthentication
-                Name: ui5
-                ProxyType: Internet
-                Type: HTTP
-                URL: https://ui5.sap.com
-            existing_destinations_policy: update
       service: destination
       service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: optenstatus-srv-api
+                URL: ~{optenstatus-srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+              - Name: ui5
+                URL: https://ui5.sap.com
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+    requires:
+      - name: optenstatus-srv-api
+        group: destination
+        properties:
+          name: optenstatus-srv-api
+          url: ~{srv-url}
+          forwardAuthToken: true
+
   - name: optenstatus-html5-repo-host
     type: org.cloudfoundry.managed-service
     parameters:
       service: html5-apps-repo
       service-plan: app-host
-parameters:
-  deploy_mode: html5-repo
-  enable-parallel-deployments: true
-build-parameters:
-  before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
+  - name: optenstatus-html5-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+
+  - name: postgre_msg
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service: postgresql-db
+      service-plan: free
