@@ -9,11 +9,22 @@ class OptenService extends cds.ApplicationService {
         this.on("MarkForDeletion", async(req) => {
             var id = req.params[0].ID
             console.log(req.params[0].ID) 
-        await bpApi.run(UPDATE(A_Customer).where({Customer:id}).set({DeletionIndicator:true}))
-        await bpApi.run(UPDATE(A_Supplier).where({Supplier:id}).set({DeletionIndicator:true}))  
+            try {
+                await bpApi.run(UPDATE(A_Customer).where({Customer:id}).set({DeletionIndicator:true}))
+            }
+            catch(error){
+                
+            }
+            try {
+                await bpApi.run(UPDATE(A_Supplier).where({Supplier:id}).set({DeletionIndicator:true})) 
+            }
+            catch(error){
+
+            }
+         
            
-        const cust = await bpApi.run(SELECT.from('A_Customer'))
-        console.log(cust)
+        //const cust = await bpApi.run(SELECT.from('A_Customer'))
+       // console.log(cust)
             
         })
 
