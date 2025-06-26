@@ -6,9 +6,7 @@ using OptenStatus as my from '../db/schema';
 service OptenStatusService {
     //@odata.draft.enabled
     @odata.draft.bypass
-    entity BPStatuses as projection on my.BPStatuses{
-
-    } actions{
+    entity BPStatuses as projection on my.BPStatuses actions{
         action MarkForDeletion();
     }
 
