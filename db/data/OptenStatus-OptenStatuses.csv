@@ -1,0 +1,18 @@
+ID,StatusText
+0, Működik
+1, A cég megszűnt
+2, Nem használt
+3, A cég végelszámolási eljárás alatt áll 
+4, A cég felszámolási eljárás alatt áll
+5, A cég csõd eljárás alatt áll  
+6, A cég átalakulás útján megszûnt  
+7, A cég Bírósági törlési eljárás alatt  
+8, A cég bejegyzési kérelme elutasítva  
+9, A cég törlési eljárása megindítva  
+10, A cég állapota bizonytalan  
+11, Végelszámolás befejezve  
+12, Felszámolás befejezve  
+13, A cég kényszertörlési eljárás alatt áll  
+14, Szüneteltetett vállalkozói tevékenység  
+15, Egyéni céggé alakult  
+16, Eljárással érintett

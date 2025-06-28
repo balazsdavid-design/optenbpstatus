@@ -2,6 +2,19 @@ const cds = require("@sap/cds");
 class OptenService extends cds.ApplicationService {
 
     async init(){
+        this.after("READ","BPStatuses",async(results, req) => {
+            for(let each of results){
+                
+                if(each.OptenStatus == null){
+                    each.OptenStatus = { StatusText : "A cég nem található"}
+                }
+                if(each.OptenStatus_ID != 0){
+                    each.LockSuggested = true
+                }
+            }
+            
+        })
+
         const xsenv = require('@sap/xsenv');
         xsenv.loadEnv();
         const bpApi = await cds.connect.to('API_BUSINESS_PARTNER')

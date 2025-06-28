@@ -5,28 +5,28 @@ annotate service.BPStatuses with @(
         Data : [
             {
                 $Type : 'UI.DataField',
-                Label : 'ID',
+                Label : '{i18n>ID}',
                 Value : ID,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'OrganizationBPName1',
+                Label : '{i18n>OrganizationBPName1}',
                 Value : OrganizationBPName1,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'TaxNumber',
+                Label : '{i18n>TaxNumber}',
                 Value : TaxNumber,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'OptenStatus',
-                Value : OptenStatus,
+                Label : '{i18n>LockSuggested}',
+                Value : LockSuggested,
             },
             {
                 $Type : 'UI.DataField',
-                Label : 'LockSuggested',
-                Value : LockSuggested,
+                Value : OptenStatus.StatusText,
+                Label : '{i18n>OptenStatus}',
             },
         ],
     },
@@ -41,34 +41,55 @@ annotate service.BPStatuses with @(
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
-            Label : 'ID',
+            Label : '{i18n>ID}',
             Value : ID,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'OrganizationBPName1',
+            Label : '{i18n>OrganizationBPName1}',
             Value : OrganizationBPName1,
         },
         {
             $Type : 'UI.DataField',
-            Label : 'TaxNumber',
+            Label : '{i18n>TaxNumber}',
             Value : TaxNumber,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'OptenStatus',
-            Value : OptenStatus,
-        },
-        {
-            $Type : 'UI.DataField',
-            Label : 'LockSuggested',
-            Value : LockSuggested,
         },
         {
             $Type : 'UI.DataFieldForAction',
             Action : 'OptenStatusService.MarkForDeletion',
-            Label : 'MarkForDeletion',
+            Label : '{i18n>MarkForDeletion}',
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : OptenStatus.StatusText,
+            Label : '{i18n>OptenStatus}',
+        },
+        {
+            $Type : 'UI.DataField',
+            Label : '{i18n>LockSuggested}',
+            Value : LockSuggested,
         },
     ],
+    UI.SelectionFields : [
+        OptenStatus.StatusText,
+    ],
 );
+
+annotate service.OptenStatuses with {
+    StatusText @(
+        Common.Label : '{i18n>OptenStatus}',
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'OptenStatuses',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : StatusText,
+                    ValueListProperty : 'StatusText',
+                },
+            ],
+        },
+        Common.ValueListWithFixedValues : true,
+    )
+};
 

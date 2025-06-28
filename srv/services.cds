@@ -10,5 +10,7 @@ service OptenStatusService {
         action MarkForDeletion();
     }
 
+    entity OptenStatuses as projection on my.OptenStatuses;
+
 }
 

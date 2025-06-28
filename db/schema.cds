@@ -7,6 +7,12 @@ entity BPStatuses {
     //OrganizationBPName3 : String;
     //OrganizationBPName4 : String;
     TaxNumber : String;
-    OptenStatus : String;
-    LockSuggested : String;
+    OptenStatus : Association to one OptenStatuses;
+    virtual LockSuggested : Boolean;
+    
+}
+
+entity OptenStatuses {
+    key ID: Integer;
+    StatusText: String;
 }
